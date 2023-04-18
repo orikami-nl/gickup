@@ -6,9 +6,11 @@ data:
   conf.yml: |
     source:
       github:
-        - user: {{ .Values.githubUser }}
-          ssh: true
-          sshkey: /ssh/key
+        - token_file: /github/token
+          user: alamont
+          ssh: false
+          excludeorgs:
+            - alamont
           includeorgs:
             - orikami-nl
     destination:
@@ -18,3 +20,7 @@ data:
           zip: true
           keep: 5
           bare: true
+    log:
+      file-logging:
+        dir: "{{ .Values.mountPath }}/log"
+        file: gickup.log

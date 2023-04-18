@@ -11,7 +11,7 @@ spec:
           containers:
           - name: gickup
             image: ghcr.io/orikami-nl/gickup:latest
-            imagePullPolicy: IfNotPresent
+            imagePullPolicy: Always
             securityContext:
               privileged: true
             lifecycle:
@@ -28,7 +28,12 @@ spec:
               subPath: conf.yml
             - name: sshkey
               readOnly: true
-              mountPath: /ssh
+              mountPath: /github/key
+              subPath: key
+            - name: github-token
+              readOnly: true
+              mountPath: /github/token
+              subPath: token
           restartPolicy: OnFailure
           serviceAccountName: gickup-sa
           volumes:
@@ -38,3 +43,6 @@ spec:
           - name: sshkey
             secret:
               secretName: {{ .Values.sshKeySecretName }}
+          - name: github-token
+            secret:
+              secretName: {{ .Values.githubTokenSecretName }}

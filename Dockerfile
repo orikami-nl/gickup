@@ -15,7 +15,7 @@ RUN go get -d -v ./...
 RUN CGO_ENABLED=0 go build -a -installsuffix cgo -o app .
 
 # Use scratch as production environment -> Small builds
-FROM ubuntu:22.04 as production
+FROM ubuntu:23.04 as production
 WORKDIR /
 # Copy valid SSL certs from the builder for fetching github/gitlab/...
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/

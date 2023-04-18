@@ -3,4 +3,5 @@ githubUser: alamont
 bucketName: gickup-orikami-nl
 mountPath: /gickup-bucket
 sshKeySecretName: gickup-ssh-key
+githubTokenSecretName: gickup-github-token
 gkeProjectId: orikami-kube-a
