@@ -1,0 +1,87 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    iam.gke.io/gcp-service-account: gickup-gsa@{{ .Values.gkeProjectId }}.iam.gserviceaccount.com
+  name: gickup-sa
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: gickup-role
+rules:
+- apiGroups:
+    - ""
+    - "apps"
+    - "batch"
+    - "extensions"
+    - coordination.k8s.io
+  resources:
+    - configmaps
+    - endpoints
+    - services
+    - deployments
+    - pods
+    - pods/log
+    - jobs
+    - leases
+    - secrets
+  verbs:
+    - get
+    - list
+    - watch
+    - create
+    - update
+    - patch
+    - delete
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: gickup-rb
+subjects:
+  - kind: ServiceAccount
+    name: gickup-sa
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: gickup-role
+---
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMServiceAccount
+metadata:
+  name: gickup-gsa
+  annotations:
+    cnrm.cloud.google.com/project-id: {{ .Values.gkeProjectId }}
+spec:
+  displayName: gickup-gsa
+---
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMPolicy
+metadata:
+  name: iampolicy-workload-identity-gickup-sa
+  annotations:
+    cnrm.cloud.google.com/project-id: {{ .Values.gkeProjectId }}
+spec:
+  resourceRef:
+    apiVersion: iam.cnrm.cloud.google.com/v1beta1
+    kind: IAMServiceAccount
+    name: gickup-gsa
+  bindings:
+    - role: roles/iam.workloadIdentityUser
+      members:
+        - serviceAccount:{{ .Values.gkeProjectId }}.svc.id.goog[krane/gickup-sa]
+    - role: projects/{{ .Values.gkeProjectId }}/roles/storage
+      members:
+        - serviceAccount:{{ .Values.gkeProjectId }}.svc.id.goog[krane/gickup-sa]
+---
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMServiceAccountKey
+metadata:
+  name: gickup-gsa-secret
+spec:
+  publicKeyType: TYPE_X509_PEM_FILE
+  keyAlgorithm: KEY_ALG_RSA_2048
+  privateKeyType: TYPE_GOOGLE_CREDENTIALS_FILE
+  serviceAccountRef:
+    name: gickup-gsa

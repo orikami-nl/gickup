@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: gickup-job
+spec:
+  schedule: {{ .Values.schedule }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: gickup
+            image: ghcr.io/orikami-nl/gickup:latest
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              privileged: true
+            lifecycle:
+              postStart:
+                exec:
+                  command: ["/bin/sh", "-c", "gcsfuse {{ .Values.bucketName }} {{ .Values.mountPath }}"]
+              preStop:
+                exec:
+                  command: ["/bin/sh","-c", "fusermount -u {{ .Values.mountPath }}"]
+            # command: ["/bin/sh", "-c", "./gickup", "/gickup/conf.yml"]
+            volumeMounts:
+            - name: config
+              mountPath: /gickup/conf.yml
+              subPath: conf.yml
+            - name: sshkey
+              readOnly: true
+              mountPath: /ssh
+          restartPolicy: OnFailure
+          serviceAccountName: gickup-sa
+          volumes:
+          - name: config
+            configMap:
+              name: gickup-configmap
+          - name: sshkey
+            secret:
+              secretName: {{ .Values.sshKeySecretName }}

@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gickup-configmap
+data:
+  conf.yml: |
+    source:
+      github:
+        - user: {{ .Values.githubUser }}
+          ssh: true
+          sshkey: /ssh/key
+          includeorgs:
+            - orikami-nl
+    destination:
+      local:
+        - path: {{ .Values.mountPath }}
+          structured: true
+          zip: true
+          keep: 5
+          bare: true
